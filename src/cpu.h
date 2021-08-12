@@ -5,7 +5,7 @@
 class cpu{
 private:
 	unsigned char mem[4096];
-	unsigned short VR[16];
+	unsigned char VR[16];
 	unsigned short opcode;
 	unsigned short IndexRegister , ProgramCounter;
 	unsigned char delayTimer,soundTimer;
@@ -13,6 +13,7 @@ private:
 public:
 	cpu();
   void loadApp(const char* something);
+  void debugthing();
 	void EmuInstruction();
 	void updateDisplay();
 	unsigned char display[64*32];
@@ -35,6 +36,7 @@ public:
                 0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
                 0xF0, 0x80, 0xF0, 0x80, 0x80  //F
         };
+  bool draw;
 
 
 

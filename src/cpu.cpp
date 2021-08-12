@@ -1,6 +1,16 @@
 #include "cpu.h"
 #include<fstream>
 #include <bitset>
+
+template <typename I> std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
+    static const char* digits = "0123456789ABCDEF";
+    std::string rc(hex_len,'0');
+    for (size_t i=0, j=(hex_len-1)*4 ; i<hex_len; ++i,j-=4)
+        rc[i] = digits[(w>>j) & 0x0f];
+    return rc;
+}
+
+
 int fsize(FILE *fp){
     int prev=ftell(fp);
     fseek(fp, 0L, SEEK_END);
@@ -10,8 +20,13 @@ int fsize(FILE *fp){
 };
 
 cpu::cpu(){
-	//reset program counter 
+	//reset program counter/opcode/index register
 	ProgramCounter = 0x200; 
+	IndexRegister = 0;
+	stackptr = 0;
+	opcode = 0;
+
+
 	//clearning memory
 	for(int i=0;i<4096;i++){
 		mem[i] = 0;
@@ -81,8 +96,40 @@ void cpu::loadApp(const char* something){
 };
 
 void cpu::EmuInstruction(){
+	//fetch opcode
 	opcode = mem[ProgramCounter] << 8 | mem[ProgramCounter+1];
 	std::cout << opcode << std::endl;
+	switch(opcode & 0xF000){
+		case 0x0000:
+			switch(opcode & 0x000F){
+				case 0x0000:
+					//clear screen
+					std::cout << "00E0" << std::endl;
+					for(int i=0;i<2048;i++){
+						display[i] = 0;
+					};
+					draw = true;
+					ProgramCounter +=2;
+					break;
+				case 0x000E:
+					//returns from subroutine
+					std::cout << "00EE" << std::endl;
+					stackptr--;
+					ProgramCounter = stack[stackptr]+2;
+					break;
+			}
+			break;
+		case 0xA000:
+			VR[opcode & 0x0F00] = opcode & 0x00FF;
+
+	}
 
 }
 
+void cpu::debugthing(){
+
+	opcode = mem[ProgramCounter] << 8 | mem[ProgramCounter+1];
+	std::cout << n2hexstr(opcode) << std::endl;
+	ProgramCounter+=2;
+
+}
