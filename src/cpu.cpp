@@ -1,8 +1,8 @@
 #include "cpu.h"
 #include<fstream>
-#include <bitset>
-
-template <typename I> std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
+//#include <bitset>
+#include <stdlib.h>
+template <typename I> std::string hex(I w, size_t hex_len = sizeof(I)<<1) {
     static const char* digits = "0123456789ABCDEF";
     std::string rc(hex_len,'0');
     for (size_t i=0, j=(hex_len-1)*4 ; i<hex_len; ++i,j-=4)
@@ -98,13 +98,12 @@ void cpu::loadApp(const char* something){
 void cpu::EmuInstruction(){
 	//fetch opcode
 	opcode = mem[ProgramCounter] << 8 | mem[ProgramCounter+1];
-	std::cout << opcode << std::endl;
+	std::cout << hex(opcode) << std::endl;
 	switch(opcode & 0xF000){
 		case 0x0000:
 			switch(opcode & 0x000F){
 				case 0x0000:
-					//clear screen
-					std::cout << "00E0" << std::endl;
+					//clears screen
 					for(int i=0;i<2048;i++){
 						display[i] = 0;
 					};
@@ -113,23 +112,161 @@ void cpu::EmuInstruction(){
 					break;
 				case 0x000E:
 					//returns from subroutine
-					std::cout << "00EE" << std::endl;
 					stackptr--;
 					ProgramCounter = stack[stackptr]+2;
 					break;
+				default:
+					std::cout << "unkown opcode" << std::endl;
+			}
+			break;
+		case 0x1000:
+			//jumps to address NNN
+			ProgramCounter = opcode & 0x0FFF;
+			break;
+		case 0x2000:
+			//calls subroutine at NNN
+			stack[stackptr] = ProgramCounter; //store the current address in stack
+			stackptr++;
+			ProgramCounter = opcode & 0x0FFF; //jump to NNN
+			break;
+		case 0x3000:
+			//Skips the next instruction if VX equals NN.
+			if(VR[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)){
+				ProgramCounter+=4; // skips 1 instruction
+			}else{
+				ProgramCounter+=2;
+			}
+			break;
+		case 0x4000:
+			//Skips the next instruction if VX does not equal NN
+			if(VR[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)){
+				ProgramCounter+=4; //skips 1 instruction
+			}
+			else{
+				ProgramCounter+=2;
+			}
+			break;
+		case 0x5000:
+			//Skips the next instruction if VX equals VY
+			if(VR[(opcode & 0x0F00) >> 8] == VR[opcode & 0x00F0 >> 4]){
+				ProgramCounter+=4; // skips 1 instruction
+			}else{
+				ProgramCounter+=2;
+			}
+			break;
+		case 0x6000:
+			//sets VX to NN
+			VR[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
+			ProgramCounter+=2;
+			break;
+		case 0x7000:
+			//Adds NN to VX
+			VR[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
+			ProgramCounter+=2;
+			break;
+		case 0x8000:
+			switch(opcode & 0x000F){
+				case 0x0000:
+					//sets VX to VY
+					VR[(opcode & 0x0F00) >> 8] = VR[(opcode & 0x00F0) >> 4];
+					ProgramCounter+=2;
+					break;
+				case 0x0001:
+					//sets VX to VX or VY
+					VR[(opcode & 0x0F00) >> 8] = VR[(opcode & 0x0F00) >> 8] | VR[(opcode & 0x00F0) >> 4];
+					ProgramCounter+=2;
+					break;
+				case 0x0002:
+					//sets VX to VX and VY
+					VR[(opcode & 0x0F00) >> 8] = VR[(opcode & 0x0F00) >> 8] & VR[(opcode & 0x00F0) >> 4];
+					ProgramCounter+=2;
+					break;
+				case 0x0003:
+					//sets VX to VX xor VY.
+					VR[(opcode & 0x0F00) >> 8] = VR[(opcode & 0x0F00) >> 8] ^ VR[(opcode & 0x00F0) >> 4];
+					ProgramCounter+=2;
+					break;
+				case 0x0004:
+					//adds VY to VX. VF(V[15]) is set to 1 when there's a carry and 0 if there isn't
+					if(VR[(opcode & 0x00F0) >> 4] > (0xFF - VR[(opcode & 0x0F00) >> 8])){
+						//there is carry
+						VR[15] = 1;
+					}
+					else{
+						VR[15] = 0;
+					}
+					VR[(opcode & 0x0F00) >> 8] += VR[(opcode & 0x00F0) >> 4];
+					ProgramCounter+=2;
+					break;
+				case 0x0005:
+					// VY is substracted from VX. VF is set to 0 when there is a borrow and 1 if there isnt
+					if(VR[(opcode & 0x00F0) >> 4] > VR[(opcode & 0x0F00) >> 8]){
+						//there is a borrow
+						VR[15] = 0;
+					}else{
+						//there isn't yes
+						VR[15] = 1;
+					}
+					VR[(opcode & 0x0F00) >> 8] -= VR[(opcode & 0x00F0) >> 4];
+					ProgramCounter+=2;
+					break;
+				case 0x0006:
+					//stores the least significant bit of VX in VF and then shifts VX to the right by 1
+					VR[15] = VR[(opcode & 0x0F00) >> 8] & 0x1;
+					VR[(opcode & 0x0F00) >> 8] >>= 1;
+					ProgramCounter+=2;
+					break;
+				case 0x0007:
+					//sets VX to VY minus VX. VF is set to 0 when there is a borrow and 1 when there isnt
+					if(VR[(opcode & 0x0F00) >> 8] > VR[(opcode & 0x00F0) >> 4]){
+						//there is a borrow
+						VR[15] = 0;
+					}else{
+						//there isn't
+						VR[15] = 1;
+					}
+					VR[(opcode & 0x0F00) >> 8] = VR[(opcode & 0x00F0) >> 4] - VR[(opcode & 0x0F00) >> 8];
+					ProgramCounter+=2;
+					break;
+				case 0x000E:
+					//Stores the most significant bit of VX in VF and then shifts VX to the left by 1
+					VR[15] = VR[(opcode & 0x0F00) >> 8] >> 7;
+					VR[(opcode & 0x0F00) >> 8] <<= 1;
+					ProgramCounter+=2;
+					break;
+				default:
+					std::cout << "unkown upcode : " << hex(opcode) << std::endl;
+			}
+			break;
+		case 0x9000:
+			//skips the next instruction if VX != VY
+			if(VR[(opcode & 0x0F00) >> 8] != VR[(opcode & 0x00F0) >> 4]){
+				ProgramCounter+=4; //skips 1 instruction
+			}
+			else{
+				ProgramCounter+=2;
 			}
 			break;
 		case 0xA000:
-			VR[opcode & 0x0F00] = opcode & 0x00FF;
+			//sets I to address NNN
+			IndexRegister = opcode & 0x0FFF;
+			ProgramCounter+=2;
+			break;
+		case 0xB000:
+			//jumps to address NNN+V0
+			ProgramCounter = VR[0] + (opcode & 0x0FFF);
+			break;
+		case 0xC000:
+			//Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN. 
+			VR[(opcode & 0x0F00) >> 8] = (rand() % 255) & (opcode & 0x00FF);
+			ProgramCounter+=2;
+			break;
+		case 0xD000:
+			/*Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. Each row of 8 pixels is read as bit-coded starting from memory location I; I value does not change after the execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that does not happen */
 
+			//I'll do it later yes
+			break;
 	}
 
 }
 
-void cpu::debugthing(){
-
-	opcode = mem[ProgramCounter] << 8 | mem[ProgramCounter+1];
-	std::cout << n2hexstr(opcode) << std::endl;
-	ProgramCounter+=2;
-
-}
