@@ -364,12 +364,12 @@ void cpu::EmuInstruction(){
 					for(i = 0; i <= (opcode & 0x0F00) >> 8; i++){
 						mem[IndexRegister + i] = VR[i];
 						ProgramCounter+=2;
-						break;
-						case 0x0065:
+					break;
+					}
+				case 0x0065:
 						//FX65 fills V0 to VX with values from memory starting at address I
-						for(int i = 0; i <= (opcode & 0x0F00) >> 8;i++){
-							VR[i] = mem[IndexRegister+i];
-						}
+					for(int i = 0; i <= (opcode & 0x0F00) >> 8;i++){
+						VR[i] = mem[IndexRegister+i];
 					}
 					ProgramCounter+=2;
 					break;
