@@ -2,6 +2,14 @@
 #include<fstream>
 //#include <bitset>
 #include <stdlib.h>
+ //yes, I know ... wanna fight about it?
+unsigned short Vx; 
+unsigned short Vy;  
+unsigned short N; //height
+unsigned short pixel;
+int i;
+bool press;
+
 template <typename I> std::string hex(I w, size_t hex_len = sizeof(I)<<1) {
     static const char* digits = "0123456789ABCDEF";
     std::string rc(hex_len,'0');
@@ -262,11 +270,126 @@ void cpu::EmuInstruction(){
 			ProgramCounter+=2;
 			break;
 		case 0xD000:
-			/*Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. Each row of 8 pixels is read as bit-coded starting from memory location I; I value does not change after the execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that does not happen */
+			//0xDXYN : check opcode table for further information
+			Vx = VR[(opcode & 0x0F00) >> 8]; 
+			Vy = VR[(opcode & 0x00F0) >> 4];  
+			N = opcode & 0x000F; //height
+			//pixel; //yes, I know ... wanna fight about it?
+			VR[15] = 0; //since there isn't anything flipped yet
+			for(int y = 0; y < N; y++){
+				pixel = mem[IndexRegister + y]; //we read yes?
+				for(int x = 0; x < 8; x++){
+					if(pixel & (0x80 >> x) != 0){
+						if(display[Vx + x + ((Vy + y) * 64)] == 1){
+							//flipped
+							VR[15] = 0;
+						}
+						display[Vx + x + ((Vy + y) * 64)] ^= 1;
+					}
+				}
 
-			//I'll do it later yes
+			}
+			draw = true;
+			ProgramCounter+=2;
 			break;
+		case 0xE000:
+			switch(opcode & 0x000F){
+				case 0x000E:
+					//skips the next instruction if the key stored in VX is pressed
+					if(key[VR[(opcode & 0x0F00) >> 8]] != 0){
+						ProgramCounter+=4;
+					}
+					else{
+						ProgramCounter+=2;
+					}
+					break;
+				case 0x0001:
+					//skips the next instruction if the key stored in VX isn't pressed
+					if(key[VR[(opcode & 0x0F00) >> 8]] == 0){
+						ProgramCounter+=4;
+					}
+					else{
+						ProgramCounter+=2;
+					}
+					break;
+				default:
+					std::cout << "unkown opcode : 0x" << hex(opcode) << std::endl;
+			}
+			break;
+		case 0xF000:
+			switch(opcode & 0x00FF){
+				case 0x0007:
+					VR[(opcode & 0x0F00) >> 8] = delayTimer;
+					ProgramCounter+=2;
+					break;
+				case 0x000A:
+					press = false;
+					while(press == false){
+						for(int i = 0; i < 16; i++){
+							if(key[i] != 0){
+								VR[(opcode & 0x0F00) >> 8] = i; //stores they pressed key in VX
+								press = true;
+							}
+						}
+					}
+					ProgramCounter+=2;
+					break;
+				case 0x0015:
+					delayTimer = VR[(opcode & 0x0F00) >> 8];
+					ProgramCounter+=2;
+					break;
+				case 0x0018:
+					soundTimer = VR[(opcode & 0x0F00) >> 8];
+					ProgramCounter+=2;
+					break;
+				case 0x001E:
+					IndexRegister += VR[(opcode & 0x0F00) >> 8];
+					ProgramCounter+=2;
+					break;
+				case 0x0029:
+					//sets I to the location of the sprite for the character in VX
+					//charachters 0-F (in hex) are represented by a 4x5 font
+					IndexRegister = VR[(opcode & 0x0F00) >> 8] * 5;
+					ProgramCounter+=2;
+					break;
+				case 0x0033:
+					//FX33 : check opcode table for further info
+					mem[IndexRegister] = VR[(opcode & 0x0F00) >> 8] / 100;
+					mem[IndexRegister + 1] = (VR[(opcode & 0x0F00) >> 8] / 10) % 10;
+					mem[IndexRegister + 2] = VR[(opcode & 0x0F00) >> 8] % 10;
+					ProgramCounter+=2;
+					break;
+				case 0x0055:
+					//FX55: stores V0 to VX in memory starting at address I
+					for(i = 0; i <= (opcode & 0x0F00) >> 8; i++){
+						mem[IndexRegister + i] = VR[i];
+						ProgramCounter+=2;
+						break;
+						case 0x0065:
+						//FX65 fills V0 to VX with values from memory starting at address I
+						for(int i = 0; i <= (opcode & 0x0F00) >> 8;i++){
+							VR[i] = mem[IndexRegister+i];
+						}
+					}
+					ProgramCounter+=2;
+					break;
+				default:
+					std::cout << "unkown opcode : 0x" << hex(opcode) << std::endl;
+			}
+			break;
+		default:
+			std::cout << "unkown opcode : 0x" << hex(opcode) << std::endl;
 	}
 
+	//update timers
+	if(delayTimer > 0){
+		delayTimer = 0;
+	}
+	if(soundTimer > 0){
+		if(soundTimer == 1){
+			//TODO : sound before resetting the timer
+			soundTimer--;
+		}
+	}
 }
 
