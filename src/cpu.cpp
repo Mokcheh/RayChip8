@@ -279,7 +279,7 @@ void cpu::EmuInstruction(){
 			for(int y = 0; y < N; y++){
 				pixel = mem[IndexRegister + y]; //we read yes?
 				for(int x = 0; x < 8; x++){
-					if(pixel & (0x80 >> x) != 0){
+					if((pixel & (0x80 >> x)) != 0){
 						if(display[Vx + x + ((Vy + y) * 64)] == 1){
 							//flipped
 							VR[15] = 0;

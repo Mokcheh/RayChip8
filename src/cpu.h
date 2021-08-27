@@ -12,12 +12,14 @@ private:
 	unsigned short stack[16] , stackptr;
 public:
 	cpu();
+    void keyPressed();
+    void keyUnpressed();
   void loadApp(const char* something);
-  void debugthing();
+
 	void EmuInstruction();
 	void updateDisplay();
-	unsigned char display[64*32];
-	unsigned char key[16];
+	bool display[2048];
+	bool key[16];
 	unsigned char fontset[80] = {
                 0xF0, 0x90, 0x90, 0x90, 0xF0, //0
                 0x20, 0x60, 0x20, 0x20, 0x70, //1
