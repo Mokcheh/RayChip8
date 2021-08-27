@@ -12,8 +12,10 @@ build/cpu.o: src/cpu.cpp
 	$(CC) -c -o build/cpu.o src/cpu.cpp
 
 
-build/window.o: src/window.o
+build/window.o: src/window.cpp
 	$(CC) -c -o build/window.o src/window.cpp
+
+
 
 clean:
 	rm build/*
