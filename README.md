@@ -1,2 +1,2 @@
-# myChip8
+# RayChip8
 Chip8Emu
