@@ -8,7 +8,7 @@ unsigned short Vy;
 unsigned short N; //height
 unsigned short pixel;
 int i;
-bool press;
+
 
 template <typename I> std::string hex(I w, size_t hex_len = sizeof(I)<<1) {
     static const char* digits = "0123456789ABCDEF";
@@ -33,6 +33,7 @@ cpu::cpu(){
 	IndexRegister = 0;
 	stackptr = 0;
 	opcode = 0;
+    press = false;
 
 
 	//clearning memory
@@ -388,6 +389,7 @@ void cpu::EmuInstruction(){
 	if(soundTimer > 0){
 		if(soundTimer == 1){
 			//TODO : sound before resetting the timer
+            playSound();
 			soundTimer--;
 		}
 	}

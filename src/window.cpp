@@ -1,9 +1,10 @@
 #include "cpu.h"
-#include "raylib.h"
+
 
 void cpu::updateDisplay(){
     //if display[] got updated then update the screen
     if(cpu::draw){
+        cpu::draw = false;
         ClearBackground(BLACK);
         BeginDrawing();
         for(int y = 0; y<32;y++){
@@ -49,4 +50,11 @@ void cpu::keyUnpressed(){
     else if (IsKeyDown(KEY_X)) cpu::key[13] = 0;
     else if (IsKeyDown(KEY_C)) cpu::key[14] = 0;
     else if (IsKeyDown(KEY_V)) cpu::key[15] = 0;
+}
+
+void cpu::loadSound(const char* path){
+    fxWav = LoadSound(path);
+}
+void cpu::playSound(){
+    PlaySound(fxWav);
 }

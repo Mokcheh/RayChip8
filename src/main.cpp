@@ -1,14 +1,19 @@
 #include "cpu.h"
-#include "raylib.h"
+
 
 int main(int argc, char **argv){
     cpu *chip = new cpu();
     chip->loadApp(argv[1]);
-    InitWindow(1280 , 640 , "Chip8 Emu");
 
-    SetTargetFPS(300);
+    InitWindow(1280 , 640 , "Chip8 Emu");
+    chip->loadSound("bonk.wav");
+
+
+    SetTargetFPS(60);
     while(!WindowShouldClose()){
-        chip->EmuInstruction();
+        for(int cycle = 0; cycle <9;cycle++){
+            chip->EmuInstruction();
+        }
         chip->keyUnpressed();
         chip->updateDisplay();
         chip->keyPressed();
@@ -19,3 +24,4 @@ int main(int argc, char **argv){
     delete chip;
 	return 0;
 }
+

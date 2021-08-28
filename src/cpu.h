@@ -1,5 +1,5 @@
 
-
+ #include "raylib.h"
 #include <iostream>
 
 class cpu{
@@ -10,8 +10,12 @@ private:
 	unsigned short IndexRegister , ProgramCounter;
 	unsigned char delayTimer,soundTimer;
 	unsigned short stack[16] , stackptr;
+    Sound fxWav;
+    bool press;
 public:
 	cpu();
+    void loadSound(const char* path);
+    void playSound();
     void keyPressed();
     void keyUnpressed();
   void loadApp(const char* something);
