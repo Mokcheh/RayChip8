@@ -53,6 +53,7 @@ void cpu::keyUnpressed(){
 }
 
 void cpu::loadSound(const char* path){
+    InitAudioDevice();
     fxWav = LoadSound(path);
 }
 void cpu::playSound(){

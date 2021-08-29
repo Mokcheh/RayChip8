@@ -283,7 +283,7 @@ void cpu::EmuInstruction(){
 					if((pixel & (0x80 >> x)) != 0){
 						if(display[Vx + x + ((Vy + y) * 64)] == 1){
 							//flipped
-							VR[15] = 0;
+							VR[15] = 1;
 						}
 						display[Vx + x + ((Vy + y) * 64)] ^= 1;
 					}
