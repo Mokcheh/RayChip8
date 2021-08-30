@@ -8,9 +8,10 @@ int main(int argc, char **argv){
     chip->loadSound("../bin/bonk.wav");
     SetTargetFPS(60);
     while(!WindowShouldClose()){
-        for(int cycle = 0; cycle <9;cycle++){
+        for(int cycle = 0; cycle <8;cycle++){
             chip->EmuInstruction();
         }
+
         chip->keyUnpressed();
         chip->updateDisplay();
         chip->playSound();

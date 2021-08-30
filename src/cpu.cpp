@@ -1,7 +1,7 @@
 #include "cpu.h"
 #include<fstream>
-//#include <bitset>
-#include <stdlib.h>
+ #include <chrono>
+ #include <thread>
  //yes, I know ... wanna fight about it?
 unsigned short Vx; 
 unsigned short Vy;  
@@ -28,12 +28,12 @@ int fsize(FILE *fp){
 };
 
 cpu::cpu(){
-	//reset program counter/opcode/index register
+	//reset program counter/opcode/index register ...
 	ProgramCounter = 0x200; 
 	IndexRegister = 0;
 	stackptr = 0;
 	opcode = 0;
-    press = false;
+    delayTimer = 0 , soundTimer = 0;
 
 
 	//clearning memory
@@ -63,8 +63,6 @@ cpu::cpu(){
 	};
 	std::cout << "loaded fonts" << std::endl;
 
-	IndexRegister = 0, stackptr = 0;
-	delayTimer = 0 , soundTimer = 0;
 
 	std::cout << "chip8 initialized" << std::endl;
 	//step 1 done
@@ -324,17 +322,9 @@ void cpu::EmuInstruction(){
 					ProgramCounter+=2;
 					break;
 				case 0x000A:
-					press = false;
-					while(press == false){
-						for(int i = 0; i < 16; i++){
-							if(key[i] != 0){
-								VR[(opcode & 0x0F00) >> 8] = i; //stores they pressed key in VX
-								press = true;
-							}
-						}
-					}
-					ProgramCounter+=2;
-					break;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+                    ProgramCounter+=2;
+                    break;
 				case 0x0015:
 					delayTimer = VR[(opcode & 0x0F00) >> 8];
 					ProgramCounter+=2;
