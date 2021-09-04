@@ -1,6 +1,6 @@
 CC = g++
 LIBS = -lraylib
-OUTPUT = -o bin/emu
+OUTPUT = -o bin/RayChip8
 
 emu: build/cpu.o build/main.o build/window.o
 	$(CC) build/main.o build/cpu.o build/window.o $(OUTPUT) $(LIBS)
@@ -22,4 +22,6 @@ clean:
 
 
 clean-bin:
-	rm bin/emu
+	rm bin/RayChip8
+
+

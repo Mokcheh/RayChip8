@@ -10,7 +10,6 @@ private:
 	unsigned short IndexRegister , ProgramCounter;
 	unsigned char delayTimer,soundTimer;
 	unsigned short stack[16] , stackptr;
-    Sound fxWav;
     bool display[2048];
     bool key[16];
     unsigned char fontset[80] = {
@@ -36,8 +35,6 @@ private:
 
 public:
 	cpu();
-    void loadSound(const char* path);
-    void playSound();
     void keyPressed();
     void keyUnpressed();
     void loadApp(const char* something);

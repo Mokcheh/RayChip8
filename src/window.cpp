@@ -52,10 +52,3 @@ void cpu::keyUnpressed(){
     else if (IsKeyDown(KEY_V)) cpu::key[15] = 0;
 }
 
-void cpu::loadSound(const char* path){
-    InitAudioDevice();
-    fxWav = LoadSound(path);
-}
-void cpu::playSound(){
-    PlaySound(fxWav);
-}

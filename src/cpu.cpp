@@ -379,7 +379,6 @@ void cpu::EmuInstruction(){
 	if(soundTimer > 0){
 		if(soundTimer == 1){
 			//TODO : sound before resetting the timer
-            playSound();
 			soundTimer--;
 		}
 	}
