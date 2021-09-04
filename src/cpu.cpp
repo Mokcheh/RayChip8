@@ -105,7 +105,7 @@ void cpu::loadApp(const char* something){
 void cpu::EmuInstruction(){
 	//fetch opcode
 	opcode = mem[ProgramCounter] << 8 | mem[ProgramCounter+1];
-	std::cout << hex(opcode) << std::endl;
+	std::cout << "0x" << hex(opcode) << std::endl;
 	switch(opcode & 0xF000){
 		case 0x0000:
 			switch(opcode & 0x000F){
