@@ -10,20 +10,11 @@ unsigned short pixel;
 int i;
 
 
-template <typename I> std::string hex(I w, size_t hex_len = sizeof(I)<<1) {
-    static const char* digits = "0123456789ABCDEF";
-    std::string rc(hex_len,'0');
-    for (size_t i=0, j=(hex_len-1)*4 ; i<hex_len; ++i,j-=4)
-        rc[i] = digits[(w>>j) & 0x0f];
-    return rc;
-}
-
-
 int fsize(FILE *fp){
     int prev=ftell(fp);
     fseek(fp, 0L, SEEK_END);
     int sz=ftell(fp);
-    fseek(fp,prev,SEEK_SET); //go back to where we were
+    fseek(fp,prev,SEEK_SET);
     return sz;
 };
 
@@ -36,7 +27,7 @@ cpu::cpu(){
     delayTimer = 0 , soundTimer = 0;
 
 
-	//clearning memory
+	//clearing memory
 	for(int i=0;i<4096;i++){
 		mem[i] = 0;
 	};
@@ -105,7 +96,6 @@ void cpu::loadApp(const char* something){
 void cpu::EmuInstruction(){
 	//fetch opcode
 	opcode = mem[ProgramCounter] << 8 | mem[ProgramCounter+1];
-	std::cout << "0x" << hex(opcode) << std::endl;
 	switch(opcode & 0xF000){
 		case 0x0000:
 			switch(opcode & 0x000F){
